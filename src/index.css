@@ -2,3 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/* LogSeq Theme Integration */
+:root {
+  /* Use LogSeq's CSS variables when available */
+  --ls-primary-background-color: #ffffff;
+  --ls-secondary-background-color: #f7f7f7;
+  --ls-primary-text-color: #24292e;
+  --ls-border-color: #d1d5da;
+  --ls-link-text-color: #0366d6;
+}
+
+.dark {
+  --ls-primary-background-color: #1e1e1e;
+  --ls-secondary-background-color: #2d2d2d;
+  --ls-primary-text-color: #d4d4d4;
+  --ls-border-color: #3e3e3e;
+  --ls-link-text-color: #4a9eff;
+}
+
+/* Custom classes using LogSeq variables */
+.timepicker-modal {
+  background-color: var(--ls-primary-background-color);
+  color: var(--ls-primary-text-color);
+  border: 1px solid var(--ls-border-color);
+}
+
+.timepicker-select {
+  background-color: var(--ls-secondary-background-color);
+  color: var(--ls-primary-text-color);
+  border-color: var(--ls-border-color);
+}
+
+.timepicker-select:focus {
+  border-color: var(--ls-link-text-color);
+  outline: none;
+  ring: 2px;
+  ring-color: var(--ls-link-text-color);
+}
+
+.timepicker-button-primary {
+  background-color: var(--ls-link-text-color);
+  color: white;
+}
+
+.timepicker-button-primary:hover {
+  opacity: 0.9;
+}
+
+.timepicker-button-secondary {
+  background-color: var(--ls-secondary-background-color);
+  color: var(--ls-primary-text-color);
+  border: 1px solid var(--ls-border-color);
+}
+
+.timepicker-button-secondary:hover {
+  opacity: 0.8;
+}

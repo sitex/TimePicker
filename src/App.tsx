@@ -1,26 +1,74 @@
-import React, { useRef } from "react";
-import { useAppVisible } from "./utils";
+import React from "react";
+import TimePicker from "./components/TimePicker";
+import { handleInsertionError } from "./utils/errorHandler";
 
-function App() {
-  const innerRef = useRef<HTMLDivElement>(null);
-  const visible = useAppVisible();
-  if (visible) {
-    return (
-      <main
-        className="backdrop-filter backdrop-blur-md fixed inset-0 flex items-center justify-center"
-        onClick={(e) => {
-          if (!innerRef.current?.contains(e.target as any)) {
-            window.logseq.hideMainUI();
-          }
-        }}
-      >
-        <div ref={innerRef} className="text-size-2em">
-          Welcome to [[Logseq]] Plugins!
-        </div>
-      </main>
-    );
-  }
-  return null;
+interface AppProps {
+  onClose: () => void;
+}
+
+function App({ onClose }: AppProps) {
+  const handleTimeSelect = async (time: string) => {
+    try {
+      // Check if editor is in editing mode
+      const isEditing = await logseq.Editor.checkEditing();
+
+      if (isEditing) {
+        // Insert at cursor if in editing mode
+        await logseq.Editor.insertAtEditingCursor(time);
+      } else {
+        // Fallback: get current block and append
+        const currentBlock = await logseq.Editor.getCurrentBlock();
+        if (currentBlock) {
+          const newContent = currentBlock.content
+            ? `${currentBlock.content} ${time}`
+            : time;
+          await logseq.Editor.updateBlock(currentBlock.uuid, newContent);
+        } else {
+          throw new Error("No active block found");
+        }
+      }
+
+      // Show success message
+      logseq.UI.showMsg("Time inserted successfully", "success", {
+        timeout: 2000,
+      });
+
+      onClose();
+    } catch (error) {
+      handleInsertionError(error);
+      // Don't close on error, let user try again
+    }
+  };
+
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Handle Escape key
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-0 flex items-start justify-start"
+      onClick={handleOutsideClick}
+    >
+      <div className="timepicker-modal rounded-lg shadow-xl p-4 min-w-[280px]">
+        <h3 className="text-lg font-semibold mb-4">Select Time</h3>
+        <TimePicker onTimeSelect={handleTimeSelect} onCancel={onClose} />
+      </div>
+    </div>
+  );
 }
 
 export default App;

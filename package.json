@@ -1,13 +1,15 @@
 {
-  "name": "logseq-plugin-template-react",
-  "version": "0.0.0",
+  "name": "logseq-plugin-timepicker",
+  "version": "0.1.0",
+  "description": "A time picker plugin for LogSeq",
+  "author": "Your Name",
+  "license": "MIT",
   "main": "dist/index.html",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preinstall": "npx only-allow pnpm"
   },
-  "license": "MIT",
   "dependencies": {
     "@logseq/libs": "^0.0.17",
     "react": "^18.2.0",
@@ -37,7 +39,9 @@
     "vite-plugin-logseq": "1.1.2"
   },
   "logseq": {
-    "id": "_pengx17-logseq-template-react",
-    "icon": "./logo.svg"
+    "id": "logseq-timepicker",
+    "title": "TimePicker",
+    "icon": "./icon.png",
+    "main": "dist/index.html"
   }
 }

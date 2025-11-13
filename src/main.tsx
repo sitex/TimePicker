@@ -5,58 +5,74 @@ import * as ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-import { logseq as PL } from "../package.json";
+let root: ReactDOM.Root | null = null;
 
-// @ts-expect-error
-const css = (t, ...args) => String.raw(t, ...args);
+async function main() {
+  console.log("TimePicker plugin loaded");
 
-const pluginId = PL.id;
+  // Register slash command
+  logseq.Editor.registerSlashCommand("time", async () => {
+    await showTimePicker();
+  });
 
-function main() {
-  console.info(`#${pluginId}: MAIN`);
-  const root = ReactDOM.createRoot(document.getElementById("app")!);
-
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-
-  function createModel() {
-    return {
-      show() {
-        logseq.showMainUI();
-      },
-    };
+  // Prepare React root
+  const rootElement = document.getElementById("app");
+  if (rootElement) {
+    root = ReactDOM.createRoot(rootElement);
   }
 
-  logseq.provideModel(createModel());
-  logseq.setMainUIInlineStyle({
-    zIndex: 11,
-  });
+  // Apply initial theme
+  await updateTheme();
 
-  const openIconName = "template-plugin-open";
+  // Listen for theme changes
+  logseq.App.onThemeModeChanged(updateTheme);
 
-  logseq.provideStyle(css`
-    .${openIconName} {
-      opacity: 0.55;
-      font-size: 20px;
-      margin-top: 4px;
+  // Listen for UI visibility changes
+  logseq.on("ui:visible:changed", ({ visible }) => {
+    if (visible) {
+      renderApp();
     }
-
-    .${openIconName}:hover {
-      opacity: 0.9;
-    }
-  `);
-
-  logseq.App.registerUIItem("toolbar", {
-    key: openIconName,
-    template: `
-    <a data-on-click="show">
-        <div class="${openIconName}">⚙️</div>
-    </a>    
-`,
   });
+}
+
+async function updateTheme() {
+  try {
+    const configs = await logseq.App.getUserConfigs();
+    const theme = configs?.preferredThemeMode || "light";
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  } catch (error) {
+    console.error("Failed to get theme:", error);
+    // Default to light theme
+    document.documentElement.classList.remove("dark");
+  }
+}
+
+async function showTimePicker() {
+  // Get cursor position for popup placement
+  const cursorPos = await logseq.Editor.getEditingCursorPosition();
+
+  if (cursorPos) {
+    // Position popup near cursor
+    logseq.setMainUIInlineStyle({
+      position: "fixed",
+      left: `${cursorPos.left}px`,
+      top: `${cursorPos.top + 30}px`,
+      zIndex: 11,
+    });
+  }
+
+  // Show popup
+  logseq.showMainUI({ autoFocus: true });
+}
+
+function renderApp() {
+  if (root) {
+    root.render(
+      <React.StrictMode>
+        <App onClose={() => logseq.hideMainUI()} />
+      </React.StrictMode>
+    );
+  }
 }
 
 logseq.ready(main).catch(console.error);
